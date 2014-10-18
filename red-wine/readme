@@ -1,0 +1,23 @@
+################################################################################################
+#
+# this directory contains all resources needed to train a model to predict the quality of red-wine
+#
+# author: dra120126@163.com
+# date: 2014.10.18
+#
+################################################################################################
+
+references: http://blog.safaribooksonline.com/2014/02/10/pylearn2-regression-3rd-party-data/
+
+how to use these:
+    1, make sure you have installed pylearn2
+    2, train this model(specified in xxx.yaml) with data
+        eg: train.py xxx.yaml
+    3, test this model with data
+        eg: python predict.py xxx.pkl input_data result_data
+        
+
+
+
+
+
