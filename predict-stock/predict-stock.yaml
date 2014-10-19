@@ -1,0 +1,83 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:data_loader.load_data {
+        start: 0,
+        stop: 400
+    },
+    model: !obj:pylearn2.models.mlp.MLP {
+        layers: [
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h0',
+                     dim: 1000,
+                     irange: .05,
+                     max_col_norm: 1.9365,
+                 },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h1',
+                     dim: 200,
+                     irange: .05,
+                     max_col_norm: 1.9365,
+                 },
+                 !obj:pylearn2.models.mlp.RectifiedLinear {
+                     layer_name: 'h2',
+                     dim: 200,
+                     irange: .05,
+                     max_col_norm: 1.9365,
+                 },
+                 !obj:pylearn2.models.mlp.LinearGaussian {
+                     init_bias: !obj:pylearn2.models.mlp.mean_of_targets { 
+                                    dataset: *train 
+                                },
+                     init_beta: !obj:pylearn2.models.mlp.beta_from_targets { 
+                                    dataset: *train 
+                                },
+                     min_beta: 1.,
+                     max_beta: 100.,
+                     beta_lr_scale: 1.,
+                     dim: 1,
+                     # max_col_norm: 1.9365,
+                     layer_name: 'y',
+                     irange: .005
+                 }
+                ],
+        nvis: 10,
+    },
+    algorithm: !obj:pylearn2.training_algorithms.bgd.BGD {
+        line_search_mode: 'exhaustive',
+        batch_size: 500,
+        conjugate: 1,
+        reset_conjugate: 0,
+        reset_alpha: 0,
+        updates_per_batch: 10,
+        monitoring_dataset:
+            {
+                'train' : *train,
+                'valid' : !obj:data_loader.load_data {
+                            start: 400,
+                            stop: 600
+                          },
+                'test'  : !obj:data_loader.load_data {
+                            start: 600,
+                            stop: 700
+                          }
+            },
+        termination_criterion: !obj:pylearn2.termination_criteria.Or {
+            criteria: [
+                !obj:pylearn2.termination_criteria.MonitorBased {
+                    channel_name: "valid_y_mse",
+                    prop_decrease: 0.001, 
+                    N: 100 
+                },  
+                !obj:pylearn2.termination_criteria.EpochCounter {
+                    max_epochs: 2000
+                }   
+            ]   
+        }
+    },
+    extensions: [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
+             channel_name: 'valid_y_mse',
+             save_path: "${PYLEARN2_TRAIN_FILE_FULL_STEM}_best.pkl"
+        },
+    ],
+    save_freq: 10
+}
